@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "934773244697",
+    "project_id": "ranchu-613fa",
+    "storage_bucket": "ranchu-613fa.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:934773244697:android:55545669c02ce0b7ba3b88",
+        "android_client_info": {
+          "package_name": "com.example.ranchu"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCdt2vgDd7-Y2LepElGK4BR_fP3fgGfRX8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
