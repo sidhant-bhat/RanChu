@@ -1,5 +1,6 @@
 package com.example.ranchu
 
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
@@ -28,6 +29,12 @@ class PredictionResultActivity : AppCompatActivity() {
         binding.totalPredictionsTextView.text = "Total Predictions: $totalPredictions"
         binding.ransomwareDetectedTextView.text = "Ransomware Detected: $ransomwareDetected"
         binding.timestampsTextView.text = "Timestamps Affected: ${timestamps.joinToString(", ")}"
+      //
+        binding.recoveryBtn.setOnClickListener {
+            startActivity(Intent(this@PredictionResultActivity, RecoveryTips::class.java))
+            finish()
+
+        }
 
         // Setup Pie Chart
         setupPieChart(ransomwareDetected, totalPredictions - ransomwareDetected)

@@ -97,6 +97,18 @@
             android:layout_margin="16dp" />
 
         <!-- Timestamps Affected Section -->
+
+
+        <Button
+            android:id="@+id/recovery_btn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Recovery Tips"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:backgroundTint="@color/recovey_btn"
+            />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
