@@ -60,9 +60,14 @@ dependencies {
     implementation (libs.androidx.activity.ktx)
     implementation (libs.kotlinx.coroutines.android)
     implementation (libs.androidx.lifecycle.viewmodel.ktx)
+
+    //for charts
+    implementation (libs.philjay.mpandroidchart)
     
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+
+    implementation(libs.cardView)
 }

@@ -16,6 +16,10 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+
+        maven {
+            setUrl("https://jitpack.io")  // This is the correct way
+        }
     }
 }
 

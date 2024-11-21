@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="8dp"
+        android:background="?attr/selectableItemBackground">
+
+        <!-- Status Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="12dp"
+            android:background="@drawable/card_background"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:id="@+id/statusTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Status: "
+                android:textStyle="bold"
+                android:textSize="18sp"
+                android:layout_gravity="start" />
+
+            <TextView
+                android:id="@+id/statusValueTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="18sp"
+                android:layout_marginStart="4dp" />
+        </LinearLayout>
+
+        <!-- Total Predictions Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="12dp"
+            android:background="@drawable/card_background"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:id="@+id/totalPredictionsTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Total Predictions: "
+                android:textStyle="bold"
+                android:textSize="18sp"
+                android:layout_gravity="start" />
+
+            <TextView
+                android:id="@+id/totalPredictionsValueTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="18sp"
+                android:layout_marginStart="4dp" />
+        </LinearLayout>
+
+        <!-- Ransomware Detected Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="12dp"
+            android:background="@drawable/card_background"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:id="@+id/ransomwareDetectedTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Ransomware Detected: "
+                android:textStyle="bold"
+                android:textSize="18sp"
+                android:layout_gravity="start" />
+
+            <TextView
+                android:id="@+id/ransomwareDetectedValueTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="18sp"
+                android:layout_marginStart="4dp" />
+        </LinearLayout>
+
+        <!-- Timestamps Affected Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="12dp"
+            android:background="@drawable/card_background">
+
+            <TextView
+                android:id="@+id/timestampsTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Timestamps Affected:"
+                android:textStyle="bold"
+                android:textSize="18sp"
+                android:layout_gravity="start" />
+
+            <TextView
+                android:id="@+id/timestampsValueTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:layout_marginTop="4dp" />
+        </LinearLayout>
+        <com.github.mikephil.charting.charts.PieChart
+            android:id="@+id/pieChart"
+            android:layout_width="300dp"
+            android:layout_height="300dp"
+            android:layout_margin="16dp" />
+
+
+    </LinearLayout>
+</ScrollView>

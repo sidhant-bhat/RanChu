@@ -26,6 +26,8 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
 
+        <activity android:name=".PredictionResultActivity" />
+
         <activity
             android:name=".SignUpActivity"
             android:exported="false" />

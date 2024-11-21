@@ -13,6 +13,7 @@ loggingInterceptor = "4.9.3"
 material = "1.12.0"
 activity = "1.9.2"
 constraintlayout = "2.1.4"
+mpandroidchartVersion = "v3.1.0"
 navigationFragmentKtx = "2.8.2"
 navigationUiKtx = "2.8.2"
 googleGmsGoogleServices = "4.4.2"
@@ -20,6 +21,7 @@ firebaseAuth = "23.1.0"
 okhttp = "4.9.0"
 retrofit = "2.9.0"
 squareupOkhttp = "4.9.3"
+card = "1.0.0"
 
 [libraries]
 androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activityKtx" }
@@ -41,7 +43,9 @@ androidx-navigation-ui-ktx = { group = "androidx.navigation", name = "navigation
 firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version.ref = "firebaseAuth" }
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 okhttp3-okhttp-v493 = { module = "com.squareup.okhttp3:okhttp", version.ref = "squareupOkhttp" }
+philjay-mpandroidchart = { module = "com.github.PhilJay:MPAndroidChart", version.ref = "mpandroidchartVersion" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
+cardView = { module = "androidx.cardview:cardview", version.ref = "card"}
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

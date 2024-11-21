@@ -1,71 +1,80 @@
 package com.example.ranchu
 
-import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
+import android.graphics.Color
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.provider.DocumentsContract
 import android.util.Log
+import android.view.Gravity
+import android.view.View
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
-import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.lifecycleScope
 import com.example.ranchu.databinding.ActivityMainBinding
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
-import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 import java.io.File
-import java.io.FileOutputStream
-import java.net.SocketTimeoutException
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-    private lateinit var selectedFiles: MutableList<Uri>
-    private lateinit var filePickerLauncher: ActivityResultLauncher<Intent>
+    private var fileAccessUri: Uri? = null
+    private var networkTrafficUri: Uri? = null
+    private var systemPerformanceUri: Uri? = null
+    private var userBehaviorUri: Uri? = null
+    private var currentFileType: String? = null
 
+    private lateinit var filePickerLauncher: ActivityResultLauncher<Intent>
+    private lateinit var requestPermissionLauncher: ActivityResultLauncher<String>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        selectedFiles = mutableListOf()
-
-        // Initialize the file picker launcher
         filePickerLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                result.data?.let { data ->
-                    handleFileSelection(data)
+            if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+                result.data?.data?.let { uri ->
+                    Log.d("FilePicker", "File selected: $uri, Type: $currentFileType")
+                    when (currentFileType) {
+                        "file_access" -> {
+                            fileAccessUri = uri
+                            updateFileStatus(binding.fileAccessStatus, uri)
+                        }
+                        "network_traffic" -> {
+                            networkTrafficUri = uri
+                            updateFileStatus(binding.networkTrafficStatus, uri)
+                        }
+                        "system_performance" -> {
+                            systemPerformanceUri = uri
+                            updateFileStatus(binding.systemPerformanceStatus, uri)
+                        }
+                        "user_behavior" -> {
+                            userBehaviorUri = uri
+                            updateFileStatus(binding.userBehaviorStatus, uri)
+                        }
+                    }
+                    currentFileType = null
                 }
             } else {
-                Toast.makeText(this, "File selection cancelled", Toast.LENGTH_SHORT).show()
+                Log.d("FilePicker", "File selection cancelled or failed")
             }
         }
 
-        // Initialize permission launcher
         requestPermissionLauncher = registerForActivityResult(
             ActivityResultContracts.RequestPermission()
         ) { isGranted: Boolean ->
             if (isGranted) {
-                openFilePicker()
+                openFilePickersForAll()
             } else {
                 Toast.makeText(
                     this,
@@ -75,151 +84,119 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // Set click listener for the insert button
-        binding.insertBtn.setOnClickListener {
-            checkPermissions()
-        }
+        binding.selectFileAccessButton.setOnClickListener { openFilePickerFor("file_access") }
+        binding.selectNetworkTrafficButton.setOnClickListener { openFilePickerFor("network_traffic") }
+        binding.selectSystemPerformanceButton.setOnClickListener { openFilePickerFor("system_performance") }
+        binding.selectUserBehaviorButton.setOnClickListener { openFilePickerFor("user_behavior") }
+        binding.uploadButton.setOnClickListener { checkAndUploadFiles() }
     }
 
-    private fun openFilePicker() {
+    private fun openFilePickersForAll() {
+        openFilePickerFor("file_access")
+        openFilePickerFor("network_traffic")
+        openFilePickerFor("system_performance")
+        openFilePickerFor("user_behavior")
+    }
+
+    private fun openFilePickerFor(fileType: String) {
+        currentFileType = fileType
         val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
             type = "*/*"
-            putExtra(Intent.EXTRA_MIME_TYPES, arrayOf(
-                "text/csv",
-                "text/comma-separated-values",
-                "application/csv",
-                "application/excel",
-                "application/vnd.ms-excel",
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            ))
-            putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
             addCategory(Intent.CATEGORY_OPENABLE)
         }
-        try {
-            filePickerLauncher.launch(intent)
-        } catch (e: Exception) {
-            Log.e("FilePicker", "Error launching file picker", e)
-            Toast.makeText(this, "Unable to open file picker: ${e.message}", Toast.LENGTH_LONG).show()
-        }
+        filePickerLauncher.launch(intent)
     }
 
-    private fun handleFileSelection(data: Intent) {
-        selectedFiles.clear()
-        try {
-            when {
-                data.clipData != null -> {
-                    // Handle multiple files
-                    val count = data.clipData!!.itemCount
-                    for (i in 0 until count) {
-                        val uri = data.clipData!!.getItemAt(i).uri
-                        selectedFiles.add(uri)
-                        Log.d("FileSelection", "Selected file $i: $uri")
-                    }
-                }
-                data.data != null -> {
-                    // Handle single file
-                    val uri = data.data!!
-                    selectedFiles.add(uri)
-                    Log.d("FileSelection", "Selected single file: $uri")
-                }
-            }
+    private fun updateFileStatus(statusTextView: TextView, uri: Uri) {
+        val fileName = getFileNameFromUri(uri) ?: "Unknown file"
+        statusTextView.text = "File selected: $fileName"
 
-            if (selectedFiles.isNotEmpty()) {
-                Toast.makeText(this, "${selectedFiles.size} file(s) selected", Toast.LENGTH_SHORT).show()
-                uploadFiles(selectedFiles)
-            } else {
-                Toast.makeText(this, "No files selected", Toast.LENGTH_SHORT).show()
-            }
-        } catch (e: Exception) {
-            Log.e("FileSelection", "Error handling file selection", e)
-            Toast.makeText(this, "Error selecting files: ${e.message}", Toast.LENGTH_LONG).show()
-        }
+        statusTextView.setTextColor(Color.GREEN)
+        statusTextView.visibility = View.VISIBLE
     }
 
-    private lateinit var requestPermissionLauncher: ActivityResultLauncher<String>
 
-    private fun checkPermissions() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            // Android 13 and above - no need for storage permission
-            openFilePicker()
+    private fun getFileNameFromUri(uri: Uri): String? {
+        return if (uri.scheme == "content") {
+            // If the URI is a content URI, use the content resolver to query for the file name
+            contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+                val nameIndex = cursor.getColumnIndexOrThrow("_display_name")
+                cursor.moveToFirst()
+                cursor.getString(nameIndex)
+            }
         } else {
-            when {
-                ContextCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.READ_EXTERNAL_STORAGE
-                ) == PackageManager.PERMISSION_GRANTED -> {
-                    openFilePicker()
-                }
-                shouldShowRequestPermissionRationale(Manifest.permission.READ_EXTERNAL_STORAGE) -> {
-                    showPermissionExplanationDialog()
-                }
-                else -> {
-                    requestPermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
-                }
-            }
+            // If the URI is a file URI, get the file name directly from the path
+            uri.path?.substringAfterLast("/")
         }
     }
 
-    private fun showPermissionExplanationDialog() {
-        AlertDialog.Builder(this)
-            .setTitle("Permission Required")
-            .setMessage("Storage permission is required to select files for upload.")
-            .setPositiveButton("Grant Permission") { _, _ ->
-                requestPermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
-    }
 
-    private suspend fun uriToFile(context: Context, uri: Uri): File = withContext(Dispatchers.IO) {
-        val documentFile = DocumentFile.fromSingleUri(context, uri)
-        val fileName = documentFile?.name ?: "temp_${System.currentTimeMillis()}.csv"
-        val tempFile = File(context.cacheDir, fileName)
-
-        context.contentResolver.openInputStream(uri)?.use { input ->
-            FileOutputStream(tempFile).use { output ->
-                input.copyTo(output)
-            }
+    private fun checkAndUploadFiles() {
+        if (fileAccessUri != null && networkTrafficUri != null && systemPerformanceUri != null && userBehaviorUri != null) {
+            uploadFiles(fileAccessUri!!, networkTrafficUri!!, systemPerformanceUri!!, userBehaviorUri!!)
+        } else {
+            Toast.makeText(this, "Please select all files before uploading", Toast.LENGTH_LONG).show()
         }
-        tempFile
     }
-    private fun uploadFiles() {
+
+    private fun uploadFiles(
+        fileAccessUri: Uri,
+        networkTrafficUri: Uri,
+        systemPerformanceUri: Uri,
+        userBehaviorUri: Uri
+    ) {
         lifecycleScope.launch {
             try {
-                // Create MultipartBody.Part for each file
-                val fileAccessPart = createMultipartFromUri("file_access", fileAccessUri!!)
-                val networkTrafficPart = createMultipartFromUri("network_traffic", networkTrafficUri!!)
-                val systemPerformancePart = createMultipartFromUri("system_performance", systemPerformanceUri!!)
-                val userBehaviorPart = createMultipartFromUri("user_behavior", userBehaviorUri!!)
+                val fileAccessPart = createMultipartFromUri(this@MainActivity, "file_access", fileAccessUri)
+                val networkTrafficPart = createMultipartFromUri(this@MainActivity, "network_traffic", networkTrafficUri)
+                val systemPerformancePart = createMultipartFromUri(this@MainActivity, "system_performance", systemPerformanceUri)
+                val userBehaviorPart = createMultipartFromUri(this@MainActivity, "user_behavior", userBehaviorUri)
 
-                // Make API call
                 val response = RetrofitClient.api.uploadFiles(
-                    fileAccessPart,
-                    networkTrafficPart,
-                    systemPerformancePart,
-                    userBehaviorPart
+                    file_access = fileAccessPart,
+                    network_traffic = networkTrafficPart,
+                    system_performance = systemPerformancePart,
+                    user_behavior = userBehaviorPart
                 )
 
                 if (response.isSuccessful) {
-                    val result = response.body()
-                    // Handle successful response
-                    Toast.makeText(this@MainActivity, "Upload successful", Toast.LENGTH_SHORT).show()
+                    val responseBody = response.body()
+
+                    if (responseBody != null) {
+                        // Start PredictionResultActivity and pass the data
+                        val intent = Intent(this@MainActivity, PredictionResultActivity::class.java).apply {
+                            putExtra("status", responseBody.status)
+                            putExtra("total_predictions", responseBody.total_predictions)
+                            putExtra("ransomware_detected", responseBody.ransomware_detected)
+                            putStringArrayListExtra("timestamps_affected", ArrayList(responseBody.timestamps_affected))
+                        }
+                        startActivity(intent)
+                    }
                 } else {
-                    Toast.makeText(this@MainActivity, "Upload failed: ${response.code()}", Toast.LENGTH_SHORT).show()
+                    val errorBody = response.errorBody()?.string() ?: "Unknown error"
+                    Toast.makeText(this@MainActivity, "Upload failed: Upload files correctly", Toast.LENGTH_SHORT).show()
+                    Log.e("MainActivity", "Upload failed: $errorBody")
                 }
-            } catch (e: SocketTimeoutException) {
-                Toast.makeText(this@MainActivity, "Connection timed out", Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
                 Toast.makeText(this@MainActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                Log.e("MainActivity", "Upload failed: ${e.message}")
             }
         }
     }
 
-    private fun createMultipartFromUri(paramName: String, uri: Uri): MultipartBody.Part {
-        val inputStream = contentResolver.openInputStream(uri)
-        val bytes = inputStream?.readBytes() ?: ByteArray(0)
-        val requestBody = RequestBody.create("text/csv".toMediaTypeOrNull(), bytes)
-        return MultipartBody.Part.createFormData(paramName, "file.csv", requestBody)
+
+    private suspend fun createMultipartFromUri(context: Context, paramName: String, uri: Uri): MultipartBody.Part {
+        val file = uriToFile(context, uri)
+        val requestBody = file.asRequestBody("multipart/form-data".toMediaTypeOrNull())
+        return MultipartBody.Part.createFormData(paramName, file.name, requestBody)
     }
 
+    private suspend fun uriToFile(context: Context, uri: Uri): File {
+        val inputStream = context.contentResolver.openInputStream(uri)
+        val tempFile = File(context.cacheDir, "${System.currentTimeMillis()}.temp")
+        tempFile.outputStream().use { outputStream ->
+            inputStream?.copyTo(outputStream)
+        }
+        return tempFile
+    }
 }
