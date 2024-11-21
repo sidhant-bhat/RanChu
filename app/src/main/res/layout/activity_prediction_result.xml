@@ -90,6 +90,12 @@
                 android:layout_marginStart="4dp" />
         </LinearLayout>
 
+        <com.github.mikephil.charting.charts.PieChart
+            android:id="@+id/pieChart"
+            android:layout_width="300dp"
+            android:layout_height="300dp"
+            android:layout_margin="16dp" />
+
         <!-- Timestamps Affected Section -->
         <LinearLayout
             android:layout_width="match_parent"
@@ -113,12 +119,9 @@
                 android:layout_height="wrap_content"
                 android:textSize="16sp"
                 android:layout_marginTop="4dp" />
+
         </LinearLayout>
-        <com.github.mikephil.charting.charts.PieChart
-            android:id="@+id/pieChart"
-            android:layout_width="300dp"
-            android:layout_height="300dp"
-            android:layout_margin="16dp" />
+
 
 
     </LinearLayout>
